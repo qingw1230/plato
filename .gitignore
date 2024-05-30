@@ -1,1 +1,6 @@
 .vscode/
+
+plato
+
+tmp.*
+*.tmp
