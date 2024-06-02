@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/qingw1230/plato/client"
 	"github.com/spf13/cobra"
 )
 
@@ -16,5 +15,5 @@ var clientCmd = &cobra.Command{
 }
 
 func ClientHandle(cmd *cobra.Command, args []string) {
-	fmt.Println("call client")
+	client.RunMain()
 }

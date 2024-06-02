@@ -1,6 +1,9 @@
+.idea/
 .vscode/
 
 plato
+
+chat.log
 
 tmp.*
 *.tmp
