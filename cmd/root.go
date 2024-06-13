@@ -7,6 +7,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var ConfigPath string
+
+func init() {
+	cobra.OnInitialize(initConfig)
+	rootCmd.PersistentFlags().StringVar(
+		&ConfigPath,
+		"config",
+		"./im.yaml",
+		"config file (default is ./im.yaml)")
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "plato",
 	Short: "这是一个 IM 即时通信系统",
@@ -22,4 +33,7 @@ func Execute() {
 
 func IM(cmd *cobra.Command, args []string) {
 	fmt.Println("call IM")
+}
+
+func initConfig() {
 }

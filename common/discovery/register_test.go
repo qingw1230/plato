@@ -1,0 +1,32 @@
+package discovery
+
+import (
+	"context"
+	"log"
+	"testing"
+	"time"
+
+	"github.com/qingw1230/plato/common/config"
+)
+
+func init() {
+	config.Init("/home/qgw/git/plato/im.yaml")
+}
+
+func TestServiceRegister(t *testing.T) {
+	ctx := context.Background()
+	e := EndportInfo{
+		IP:   "127.0.0.1",
+		Port: "9999",
+	}
+	server, err := NewServiceRegister(&ctx, "/web/node1", &e, 5)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	go server.ListenLeaseResponChan()
+	select {
+	case <-time.After(10 * time.Second):
+		server.Close()
+	}
+}
