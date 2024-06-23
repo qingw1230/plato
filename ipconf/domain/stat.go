@@ -2,7 +2,7 @@ package domain
 
 import "math"
 
-// Stat 表示 endport 对应机器资源剩余量
+// Stat 表示 endpoint 对应机器资源剩余量
 // 因为物理机的配置可能不同，使用负载来衡量会导致偏差，故统计其资源剩余量
 type Stat struct {
 	// ConnectNum 持有的长连接数量 的剩余值

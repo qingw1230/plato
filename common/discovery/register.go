@@ -21,8 +21,8 @@ type ServiceRegister struct {
 
 // NewServiceRegister 创建服务
 // key 服务的 Web 访问路径，IP:Port/node1
-// endportinfo 机器信息
-func NewServiceRegister(ctx *context.Context, key string, endportinfo *EndportInfo, lease int64) (*ServiceRegister, error) {
+// endpointinfo 机器信息
+func NewServiceRegister(ctx *context.Context, key string, endpointinfo *EndpointInfo, lease int64) (*ServiceRegister, error) {
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   config.GetEndpointsForDiscovery(),
 		DialTimeout: config.GetTimeoutForDiscovery(),
@@ -34,7 +34,7 @@ func NewServiceRegister(ctx *context.Context, key string, endportinfo *EndportIn
 	service := &ServiceRegister{
 		client: client,
 		key:    key,
-		value:  endportinfo.Marshal(),
+		value:  endpointinfo.Marshal(),
 		ctx:    ctx,
 	}
 
@@ -67,7 +67,7 @@ func (s *ServiceRegister) putKeyWithLease(lease int64) error {
 }
 
 // UpdateValue 更新机器信息
-func (s *ServiceRegister) UpdateValue(val *EndportInfo) error {
+func (s *ServiceRegister) UpdateValue(val *EndpointInfo) error {
 	value := val.Marshal()
 	_, err := s.client.Put(*s.ctx, s.key, value, clientv3.WithLease(s.leaseID))
 	if err != nil {
