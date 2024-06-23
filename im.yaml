@@ -5,7 +5,7 @@ discovery:
     - localhost:2379
   timeout: 5
 ip_conf:
-  service_path: /im/ip_dispatcher
+  service_path: /plato/ip_dispatcher
 prpc:
   discov:
     name: etcd
