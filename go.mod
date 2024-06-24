@@ -6,6 +6,7 @@ require (
 	github.com/bytedance/gopkg v0.0.0-20240531030433-5df24c0168e2
 	github.com/cloudwego/hertz v0.9.1
 	github.com/gookit/color v1.5.4
+	github.com/prometheus/client_golang v1.11.1
 	github.com/rocket049/gocui v0.3.2
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.19.0
@@ -15,9 +16,15 @@ require (
 )
 
 require (
+	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/prometheus/client_model v0.2.0 // indirect
+	github.com/prometheus/common v0.26.0 // indirect
+	github.com/prometheus/procfs v0.6.0 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.12 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
