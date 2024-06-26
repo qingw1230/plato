@@ -5,8 +5,8 @@ import (
 	"unsafe"
 )
 
-// Endport 机器地址信息及资源状态
-type Endport struct {
+// Endpoint 机器地址信息及资源状态
+type Endpoint struct {
 	IP          string  `json:"ip"`
 	Port        string  `json:"port"`
 	ActiveScore float64 `json:"-"`
@@ -17,9 +17,9 @@ type Endport struct {
 	window *stateWindow `json:"-"`
 }
 
-// NewEndport 创建一个机器信息，并启动协程更新状态
-func NewEndport(ip, port string) *Endport {
-	ed := &Endport{
+// NewEndpoint 创建一个机器信息，并启动协程更新状态
+func NewEndpoint(ip, port string) *Endpoint {
+	ed := &Endpoint{
 		IP:   ip,
 		Port: port,
 	}
@@ -38,12 +38,12 @@ func NewEndport(ip, port string) *Endport {
 }
 
 // UpdateStat 向机器 chan 添加新状态
-func (ed *Endport) UpdateStat(s *Stat) {
+func (ed *Endpoint) UpdateStat(s *Stat) {
 	ed.window.statChan <- s
 }
 
 // CalculateScore 重新计算机器资源分
-func (ed *Endport) CalculateScore(ctx *IPConfConext) {
+func (ed *Endpoint) CalculateScore(ctx *IPConfConext) {
 	if ed.Stats != nil {
 		ed.ActiveScore = ed.Stats.CalculateActiveScore()
 		ed.StaticScore = ed.Stats.CalculateStaticScore()

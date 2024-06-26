@@ -6,9 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net"
 	"time"
 
-	"github.com/qingw1230/plato/client/sdk"
+	"github.com/qingw1230/plato/common/config"
+	"github.com/qingw1230/plato/common/sdk"
 
 	"github.com/gookit/color"
 	"github.com/rocket049/gocui"
@@ -233,7 +235,17 @@ func pasteDown(g *gocui.Gui, cv *gocui.View) error {
 
 // RunMain 运行 sdk 客户端
 func RunMain() {
-	chat = sdk.NewChat("127.0.0.1:8080", "test-im", "1230", "12301230")
+	config.Init("/home/qgw/git/plato/im.yaml")
+	_, err := net.ListenTCP("tcp", &net.TCPAddr{
+		Port: config.GetGatewayServerPort(),
+	})
+	if err != nil {
+		log.Fatalf("net.ListenTCP err:%s", err.Error())
+		panic(err)
+	}
+
+	chat = sdk.NewChat(net.ParseIP("0.0.0.0"), 8900, "test-im", "1230", "12301230")
+	chat.Receive()
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)

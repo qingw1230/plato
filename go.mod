@@ -7,10 +7,12 @@ require (
 	github.com/cloudwego/hertz v0.9.1
 	github.com/coreos/etcd v3.3.27+incompatible
 	github.com/gookit/color v1.5.4
+	github.com/panjf2000/ants v1.3.0
 	github.com/rocket049/gocui v0.3.2
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.19.0
 	go.etcd.io/etcd v3.3.27+incompatible
+	golang.org/x/sys v0.20.0
 )
 
 require (
@@ -69,7 +71,6 @@ require (
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240311132316-a219d84964c2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect

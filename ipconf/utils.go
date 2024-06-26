@@ -3,7 +3,7 @@ package ipconf
 import "github.com/qingw1230/plato/ipconf/domain"
 
 // top5Endports 获取得分前 5 的机器
-func top5Endports(eds []*domain.Endport) []*domain.Endport {
+func top5Endports(eds []*domain.Endpoint) []*domain.Endpoint {
 	if len(eds) < 5 {
 		return eds
 	}
@@ -11,7 +11,7 @@ func top5Endports(eds []*domain.Endport) []*domain.Endport {
 }
 
 // packRes 将机器列表信息包装成响应体
-func packRes(ed []*domain.Endport) Response {
+func packRes(ed []*domain.Endpoint) Response {
 	return Response{
 		Message: "ok",
 		Code:    0,
