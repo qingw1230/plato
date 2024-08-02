@@ -56,8 +56,10 @@ func (s *ServiceDiscovery) watcher(prefix string, rev int64, set, del func(key, 
 		for _, ev := range wresp.Events {
 			switch ev.Type {
 			case mvccpb.PUT:
+				// 当监听的键值对添加或更新时执行
 				set(string(ev.Kv.Key), string(ev.Kv.Value))
 			case mvccpb.DELETE:
+				// 当监听的键值对删除时执行
 				del(string(ev.Kv.Key), string(ev.Kv.Value))
 			}
 		}

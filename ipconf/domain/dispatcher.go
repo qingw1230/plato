@@ -9,23 +9,23 @@ import (
 
 // Dispatcher
 type Dispatcher struct {
-	// candidateTable 获选机器列表 key 为 IP:Port
+	// candidateTable 候选机器列表 key 为 IP:Port
 	candidateTable map[string]*Endpoint
 	sync.RWMutex
 }
 
-var dp *Dispatcher
+var d *Dispatcher
 
 func Init() {
-	dp = &Dispatcher{}
-	dp.candidateTable = make(map[string]*Endpoint)
+	d = &Dispatcher{}
+	d.candidateTable = make(map[string]*Endpoint)
 	go func() {
 		for event := range source.EventChan() {
 			switch event.Type {
 			case source.AddNodeEvent:
-				dp.addNode(event)
+				d.addNode(event)
 			case source.DelNodeEvent:
-				dp.delNode(event)
+				d.delNode(event)
 			default:
 				panic("ipconf/domain/dispatcher.go/Init()")
 			}
@@ -35,7 +35,7 @@ func Init() {
 
 // Dispatch 派发机器，按降序返回机器列表
 func Dispatch(ctx *IPConfConext) []*Endpoint {
-	eds := dp.getCandidateEndpoint(ctx)
+	eds := d.getCandidateEndpoint(ctx)
 	// 计算各机器得分
 	for _, ed := range eds {
 		ed.CalculateScore(ctx)
@@ -55,7 +55,7 @@ func Dispatch(ctx *IPConfConext) []*Endpoint {
 }
 
 // getCandidateEndpoint 获取候选机器列表
-func (dp *Dispatcher) getCandidateEndpoint(ctx *IPConfConext) []*Endpoint {
+func (dp *Dispatcher) getCandidateEndpoint(_ *IPConfConext) []*Endpoint {
 	dp.RLock()
 	defer dp.RUnlock()
 	candidateList := make([]*Endpoint, 0, len(dp.candidateTable))
@@ -72,7 +72,7 @@ func (dp *Dispatcher) delNode(event *source.Event) {
 	delete(dp.candidateTable, event.Key())
 }
 
-// addNode 向派发器中添加机器
+// addNode 向派发器中添加机器，若已存在则更新状态
 func (dp *Dispatcher) addNode(event *source.Event) {
 	dp.Lock()
 	defer dp.Unlock()

@@ -6,9 +6,10 @@ import (
 	"github.com/qingw1230/plato/common/discovery"
 )
 
+// eventChan 存储机器资源变更事件
 var eventChan chan *Event
 
-// EventChan 获取用于读取的 chan
+// EventChan 获取机器资源变更 Event 的 chan
 func EventChan() <-chan *Event {
 	return eventChan
 }

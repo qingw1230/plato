@@ -2,6 +2,7 @@ package ipconf
 
 import (
 	"context"
+	"time"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/utils"
@@ -11,10 +12,11 @@ import (
 
 // Response 获取机器列表时返回的响应体
 type Response struct {
+	Code int `json:"code"`
 	// Message 响应的简短描述
 	Message string `json:"message"`
 	// Code 响应码
-	Code int         `json:"code"`
+	Time time.Time   `json:"time"`
 	Data interface{} `json:"data"`
 }
 

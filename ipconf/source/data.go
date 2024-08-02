@@ -21,6 +21,7 @@ func Init() {
 	}
 }
 
+// DataHandler 监听 etcd 中以 /im/ip_dispatcher 为前缀的键值对，设置发生变化时的处理函数
 func DataHandler(ctx *context.Context) {
 	dis := discovery.NewServiceDiscovery(ctx)
 	defer dis.Close()
@@ -30,17 +31,20 @@ func DataHandler(ctx *context.Context) {
 		if ed, err := discovery.UnMarshal([]byte(value)); err == nil {
 			if event := NewEvent(ed); event != nil {
 				event.Type = AddNodeEvent
+				// 将添加事件写入 chan，由 dispatcher 处理
 				eventChan <- event
 			} else {
 				logger.CtxErrorf(*ctx, "DataHandler.setFunc.err: %s", err.Error())
 			}
 		}
 	}
+
 	// delFunc 消耗指定机器的资源
 	delFunc := func(key, value string) {
 		if ed, err := discovery.UnMarshal([]byte(value)); err == nil {
 			if event := NewEvent(ed); event != nil {
 				event.Type = DelNodeEvent
+				// 将删除事件写入 chan，由 dispatcher 处理
 				eventChan <- event
 			} else {
 				logger.CtxErrorf(*ctx, "DataHandler.delFunc.err: %s", err.Error())

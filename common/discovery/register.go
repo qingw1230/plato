@@ -19,10 +19,11 @@ type ServiceRegister struct {
 	ctx           *context.Context
 }
 
-// NewServiceRegister 创建服务
-// key 服务的 Web 访问路径，IP:Port/node1
-// endportinfo 机器信息
-func NewServiceRegister(ctx *context.Context, key string, endportinfo *EndportInfo, lease int64) (*ServiceRegister, error) {
+// NewServiceRegister 创建服务，向 etcd 中添加键值对
+// key 服务的 Web 访问路径，作为 etcd 的 key，例如 /im/ip_dispatcher/node1
+// endportinfo 机器信息，作为 etcd 的 value
+// ttl 添加到 etcd 中键值对的 TTL
+func NewServiceRegister(ctx *context.Context, key string, endportinfo *EndportInfo, ttl int64) (*ServiceRegister, error) {
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   config.GetEndpointsForDiscovery(),
 		DialTimeout: config.GetTimeoutForDiscovery(),
@@ -38,15 +39,15 @@ func NewServiceRegister(ctx *context.Context, key string, endportinfo *EndportIn
 		ctx:    ctx,
 	}
 
-	if err := service.putKeyWithLease(lease); err != nil {
+	if err := service.putKeyWithLease(ttl); err != nil {
 		return nil, err
 	}
 	return service, nil
 }
 
-// putKeyWithLease 创建 lease，并向其中添加数据
-func (s *ServiceRegister) putKeyWithLease(lease int64) error {
-	response, err := s.client.Grant(*s.ctx, lease)
+// putKeyWithLease 创建 lease，向 etcd 中添加 s 保存的键值对，并将 lease 绑定到该键值对上
+func (s *ServiceRegister) putKeyWithLease(ttl int64) error {
+	response, err := s.client.Grant(*s.ctx, ttl)
 	if err != nil {
 		return err
 	}
@@ -56,6 +57,7 @@ func (s *ServiceRegister) putKeyWithLease(lease int64) error {
 		return err
 	}
 
+	// 使给定租约永久有效
 	leaseResponseChan, err := s.client.KeepAlive(*s.ctx, response.ID)
 	if err != nil {
 		return err
@@ -81,18 +83,17 @@ func (s *ServiceRegister) UpdateValue(val *EndportInfo) error {
 // ListenLeaseResponChan 监听用于 lease 保活的 chan
 func (s *ServiceRegister) ListenLeaseResponChan() {
 	for leaseKeepRespon := range s.keepAliveChan {
-		logger.CtxInfof(*s.ctx, "lease success leaseID:%d, key:%s, value:%s reps:+%v",
-			s.leaseID, s.key, s.value, leaseKeepRespon)
+		logger.CtxInfof(*s.ctx, "lease success leaseID:%d, key:%s, value:%s reps:+%v", s.leaseID, s.key, s.value, leaseKeepRespon)
 	}
-	logger.CtxInfof(*s.ctx, "lease faild ! leaseID %d, key:%s, value:%s", s.leaseID, s.key, s.value)
+	logger.CtxInfof(*s.ctx, "lease faild! leaseID %d, key:%s, value:%s", s.leaseID, s.key, s.value)
 }
 
-// Close 注销服务
+// Close 注销服务，从 etcd 中删除键值对
 func (s *ServiceRegister) Close() error {
 	// 撤销给定的 lease，附加到该 lease 的 key 会过期并被删除
 	if _, err := s.client.Revoke(context.Background(), s.leaseID); err != nil {
 		return err
 	}
-	logger.CtxInfof(*s.ctx, "lease close ! leaseID:%d, key:%s, value:%s", s.leaseID, s.key, s.value)
+	logger.CtxInfof(*s.ctx, "lease close! leaseID:%d, key:%s, value:%s", s.leaseID, s.key, s.value)
 	return s.client.Close()
 }

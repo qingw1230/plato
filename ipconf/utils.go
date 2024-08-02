@@ -1,6 +1,10 @@
 package ipconf
 
-import "github.com/qingw1230/plato/ipconf/domain"
+import (
+	"time"
+
+	"github.com/qingw1230/plato/ipconf/domain"
+)
 
 // top5Endports 获取得分前 5 的机器
 func top5Endports(eds []*domain.Endpoint) []*domain.Endpoint {
@@ -13,8 +17,9 @@ func top5Endports(eds []*domain.Endpoint) []*domain.Endpoint {
 // packRes 将机器列表信息包装成响应体
 func packRes(ed []*domain.Endpoint) Response {
 	return Response{
-		Message: "ok",
 		Code:    0,
+		Message: "ok",
+		Time:    time.Now(),
 		Data:    ed,
 	}
 }

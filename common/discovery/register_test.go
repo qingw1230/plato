@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	config.Init("/home/qgw/git/plato/im.yaml")
+	config.Init("/home/qgw/code/plato/im.yaml")
 }
 
 func TestServiceRegister(t *testing.T) {
