@@ -3,6 +3,8 @@ package code
 import "google.golang.org/grpc/codes"
 
 const (
+	// CodeTooManyRequest ...
 	CodeTooManyRequest codes.Code = 100
-	CodeCircuitBreak   codes.Code = 101
+	// CodeCircuitBreak ...
+	CodeCircuitBreak codes.Code = 101
 )
