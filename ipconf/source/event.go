@@ -30,7 +30,7 @@ type Event struct {
 	MessageBytes float64
 }
 
-func NewEvent(ed *discovery.EndportInfo) *Event {
+func NewEvent(ed *discovery.EndpointInfo) *Event {
 	if ed == nil || ed.MetaData == nil {
 		return nil
 	}

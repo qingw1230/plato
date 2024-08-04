@@ -15,7 +15,7 @@ func init() {
 
 func TestServiceRegister(t *testing.T) {
 	ctx := context.Background()
-	e := EndportInfo{
+	e := EndpointInfo{
 		IP:   "127.0.0.1",
 		Port: "9999",
 	}

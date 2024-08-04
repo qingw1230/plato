@@ -14,7 +14,7 @@ import (
 func testServiceRegister(ctx *context.Context, port, node string) {
 	go func() {
 		// 创建一台机器，并注册到 etcd 中
-		ed := discovery.EndportInfo{
+		ed := discovery.EndpointInfo{
 			IP:   "127.0.0.1",
 			Port: port,
 			MetaData: map[string]interface{}{
@@ -31,7 +31,7 @@ func testServiceRegister(ctx *context.Context, port, node string) {
 
 		for {
 			// 每 5 秒更新一下机器状态
-			ed = discovery.EndportInfo{
+			ed = discovery.EndpointInfo{
 				IP:   "127.0.0.1",
 				Port: port,
 				MetaData: map[string]interface{}{

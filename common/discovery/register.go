@@ -6,7 +6,7 @@ import (
 
 	"github.com/bytedance/gopkg/util/logger"
 	"github.com/qingw1230/plato/common/config"
-	"go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // ServiceRegister 服务注册
@@ -23,7 +23,7 @@ type ServiceRegister struct {
 // key 服务的 Web 访问路径，作为 etcd 的 key，例如 /im/ip_dispatcher/node1
 // endportinfo 机器信息，作为 etcd 的 value
 // ttl 添加到 etcd 中键值对的 TTL
-func NewServiceRegister(ctx *context.Context, key string, endportinfo *EndportInfo, ttl int64) (*ServiceRegister, error) {
+func NewServiceRegister(ctx *context.Context, key string, endpointinfo *EndpointInfo, ttl int64) (*ServiceRegister, error) {
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   config.GetEndpointsForDiscovery(),
 		DialTimeout: config.GetTimeoutForDiscovery(),
@@ -35,7 +35,7 @@ func NewServiceRegister(ctx *context.Context, key string, endportinfo *EndportIn
 	service := &ServiceRegister{
 		client: client,
 		key:    key,
-		value:  endportinfo.Marshal(),
+		value:  endpointinfo.Marshal(),
 		ctx:    ctx,
 	}
 
@@ -69,7 +69,7 @@ func (s *ServiceRegister) putKeyWithLease(ttl int64) error {
 }
 
 // UpdateValue 更新机器信息
-func (s *ServiceRegister) UpdateValue(val *EndportInfo) error {
+func (s *ServiceRegister) UpdateValue(val *EndpointInfo) error {
 	value := val.Marshal()
 	_, err := s.client.Put(*s.ctx, s.key, value, clientv3.WithLease(s.leaseID))
 	if err != nil {
