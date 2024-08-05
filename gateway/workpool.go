@@ -7,6 +7,7 @@ import (
 	"github.com/qingw1230/plato/common/config"
 )
 
+// wPool 协程池
 var wPool *ants.Pool
 
 // initWorkPool 初始化协程池

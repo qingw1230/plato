@@ -237,7 +237,7 @@ func pasteDown(g *gocui.Gui, cv *gocui.View) error {
 func RunMain() {
 	config.Init("/home/qgw/git/plato/im.yaml")
 	_, err := net.ListenTCP("tcp", &net.TCPAddr{
-		Port: config.GetGatewayServerPort(),
+		Port: config.GetGatewayTCPServerPort(),
 	})
 	if err != nil {
 		log.Fatalf("net.ListenTCP err:%s", err.Error())

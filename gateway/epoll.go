@@ -16,9 +16,7 @@ import (
 
 var ep *ePool
 
-var globalFlag atomic.Int32
-
-// tcpNum 允许介入的最大 tcp 连接数
+// tcpNum 允许接入的最大 tcp 连接数
 var tcpNum int32
 
 // ePool 管理运行的 ep 模型
@@ -29,15 +27,16 @@ type ePool struct {
 	done   chan struct{}    // 用于终止网关
 
 	ln *net.TCPListener                 // 监听套接字
-	f  func(c *connection, ep *epoller) // 事件发生时的回调
+	fn func(c *connection, ep *epoller) // 事件发生时的回调
 }
 
-// initEpoll 初始化 ep 网关
+// initEpoll 初始化网关
 func initEpoll(ln *net.TCPListener, f func(c *connection, ep *epoller)) {
+
 	setLimit()
 	ep = newEPool(ln, f)
 	ep.createAcceptProcess()
-	ep.startEPoll()
+	ep.startEpoll()
 }
 
 func newEPool(ln *net.TCPListener, cb func(c *connection, ep *epoller)) *ePool {
@@ -47,7 +46,7 @@ func newEPool(ln *net.TCPListener, cb func(c *connection, ep *epoller)) *ePool {
 		eSize:  config.GetGatewayEpollerNum(),
 		done:   make(chan struct{}),
 		ln:     ln,
-		f:      cb,
+		fn:     cb,
 	}
 }
 
@@ -77,7 +76,7 @@ func (e *ePool) createAcceptProcess() {
 	}
 }
 
-func (e *ePool) startEPoll() {
+func (e *ePool) startEpoll() {
 	for i := 0; i < e.eSize; i++ {
 		go e.startEProc()
 	}
@@ -90,16 +89,15 @@ func (e *ePool) startEProc() {
 		panic(err)
 	}
 
-	// 从 eChan 中取走连接，并开始监视
+	// 从 eChan 中取走连接，并开始监听
 	go func() {
-		flagVal := globalFlag.Add(1)
 		for {
 			select {
 			case <-e.done:
 				return
 			case conn := <-e.eChan:
 				addTCPNum()
-				fmt.Printf("%d tcpNum:%d\n", flagVal, tcpNum)
+				// TODO(qingw1230): 连续多次发起大量连接请求，第一次可以快速处理，后续处理速度慢
 				if err := ep.add(conn); err != nil {
 					fmt.Printf("failed to add connection %v\n", err)
 					conn.Close()
@@ -108,7 +106,7 @@ func (e *ePool) startEProc() {
 				fmt.Printf("EpollerPoll new connection[%v] tcpSize:%d\n", conn.RemoteAddr(), tcpNum)
 			}
 		}
-	}()
+	}() // go func() {
 
 	for {
 		select {
@@ -125,13 +123,13 @@ func (e *ePool) startEProc() {
 				if conn == nil {
 					break
 				}
-				e.f(conn, ep)
+				e.fn(conn, ep)
 			}
 		}
-	}
+	} // for {
 }
 
-// addTask 添加新的连接任务
+// addTask 将获取到的新连接添加到 chan 中
 func (e *ePool) addTask(c *connection) {
 	e.eChan <- c
 }
@@ -155,8 +153,11 @@ func newEpoller() (*epoller, error) {
 // add 向 ep 添加新连接
 func (e *epoller) add(conn *connection) error {
 	fd := conn.fd
-	err := unix.EpollCtl(e.fd, syscall.EPOLL_CTL_ADD,
-		fd, &unix.EpollEvent{Events: unix.EPOLLIN | unix.EPOLLHUP, Fd: int32(fd)})
+	ev := &unix.EpollEvent{
+		Events: unix.EPOLLIN | unix.EPOLLHUP,
+		Fd:     int32(fd),
+	}
+	err := unix.EpollCtl(e.fd, syscall.EPOLL_CTL_ADD, fd, ev)
 	if err != nil {
 		return err
 	}

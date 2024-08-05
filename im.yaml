@@ -6,14 +6,6 @@ discovery:
   timeout: 5
 ip_conf:
   service_path: /im/ip_dispatcher
-gateway:
-  tcp_max_num: 70000
-  epoll_channel_num: 100
-  epoll_num: 4
-  epoll_wait_queue_size: 100
-  server_port: 8900
-  worker_pool_num: 1024
-  service_path: /plato/ip_dispatcher
 prpc:
   discov:
     name: etcd
@@ -24,3 +16,21 @@ prpc:
     url: http://127.0.0.1:14268/api/traces
     service_name: plato
     sampler: 1.0
+gateway:
+  service_name: "im.access.gateway"
+  service_addr: "127.0.0.1"
+  tcp_max_num: 70000
+  epoll_channel_num: 1024
+  epoll_num: 1
+  epoll_wait_queue_size: 100
+  tcp_server_port: 8900
+  rpc_server_port: 8901
+  worker_pool_num: 1024
+  cmd_channel_num: 2048
+  weight: 100
+state: 
+  service_name: "im.access.state"
+  servide_addr: "127.0.0.1"
+  cmd_channel_num: 2048
+  server_port: 8902
+  weight: 100

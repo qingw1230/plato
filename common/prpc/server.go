@@ -107,7 +107,7 @@ func (p *PServer) RegisterUnaryServerInterceptor(i grpc.UnaryServerInterceptor) 
 	p.interceptors = append(p.interceptors, i)
 }
 
-// Start 开启server
+// Start 开启 server
 func (p *PServer) Start(ctx context.Context) {
 	service := discov.Service{
 		Name: p.serviceName,
