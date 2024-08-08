@@ -14,7 +14,10 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-var ep *ePool
+var (
+	ep        *ePool
+	maxTCPNum int32
+)
 
 // tcpNum 允许接入的最大 tcp 连接数
 var tcpNum int32
@@ -32,8 +35,8 @@ type ePool struct {
 
 // initEpoll 初始化网关
 func initEpoll(ln *net.TCPListener, f func(c *connection, ep *epoller)) {
-
 	setLimit()
+	maxTCPNum = config.GetGatewayMaxTCPNum()
 	ep = newEPool(ln, f)
 	ep.createAcceptProcess()
 	ep.startEpoll()
@@ -131,6 +134,7 @@ func (e *ePool) startEProc() {
 
 // addTask 将获取到的新连接添加到 chan 中
 func (e *ePool) addTask(c *connection) {
+	// fmt.Println(len(e.eChan))
 	e.eChan <- c
 }
 
@@ -229,7 +233,6 @@ func subTCPNum() {
 // checkTCP 检查是否还能创建 TCP 连接
 func checkTCP() bool {
 	num := getTCPNum()
-	maxTCPNum := config.GetGatewayMaxTCPNum()
 	return num <= maxTCPNum
 }
 

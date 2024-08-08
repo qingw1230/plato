@@ -7,7 +7,7 @@ import (
 
 func init() {
 	rootCmd.AddCommand(perfCmd)
-	perfCmd.PersistentFlags().Int32Var(&perf.TCPConnNum, "tcp_conn_num", 100, "tcp 连接数默认 10000")
+	perfCmd.PersistentFlags().Int32Var(&perf.TCPConnNum, "tcp_conn_num", 10000, "tcp 连接数默认 10000")
 }
 
 var perfCmd = &cobra.Command{

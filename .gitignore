@@ -7,4 +7,6 @@ plato
 chat.log
 
 tmp.*
+*.prof
+*.test
 *.tmp

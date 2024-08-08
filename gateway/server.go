@@ -58,7 +58,7 @@ func runProc(c *connection, ep *epoller) {
 		// 读取时发现连接已断开，则将该连接从 ep 从删除
 		if errors.Is(err, io.EOF) {
 			ep.remove(c)
-			client.CancelConn(&ctx, getEndpoint(), int32(c.fd), nil)
+			// client.CancelConn(&ctx, getEndpoint(), int32(c.fd), nil)
 		}
 		return
 	}
