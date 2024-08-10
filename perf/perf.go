@@ -22,6 +22,6 @@ func RunMain() {
 	}
 
 	for i := 0; i < int(TCPConnNum); i++ {
-		sdk.NewChat(net.ParseIP("127.0.0.1"), 8900, "im", "12345", "54321")
+		sdk.NewChat(net.ParseIP("127.0.0.1"), 8900, "qgw test", "1234", "123456", 0, false)
 	}
 }

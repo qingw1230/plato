@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option go_package = "./;message";
+
+package message;
+
+// cd common/idl; 
+// protoc -I message --go_out=message message/message.proto
+
+// CmdType 信令类型
+enum CmdType { 
+    Login = 0;
+    Heartbeat = 1;
+    ReConn = 2;
+    ACK = 3;
+}
+
+// MsgCmd 顶层 cmd message 结构
+message MsgCmd {
+   CmdType Type = 1;
+   bytes Payload = 2;
+}
+
+// LoginMsg 登录消息 head
+message LoginMsgHead {
+    uint64 DeviceID = 1;
+}
+
+message LoginMsg {
+   LoginMsgHead Head = 1;
+   bytes LoginMsgBody = 2;
+}
+
+// HeartbeatMsg 心跳消息 head
+message HeartbeatMsgHead {
+}
+
+message HeartbeatMsg {
+  HeartbeatMsgHead Head = 1;
+  bytes HeartbeatMsgBody = 2;
+}
+
+// ReConnMsgHead 重连消息 head
+message ReConnMsgHead {
+    uint64 ConnID = 1;
+}
+
+message ReConnMsg {
+    ReConnMsgHead Head = 1;
+    bytes ReConnMsgBody = 2;
+}
+
+// ACKMsg ACK 消息
+message ACKMsg {
+    uint32 Code = 1;    // 状态码
+    string Msg = 2;     // 描述信息
+    CmdType Type = 3;   // 确认的信令类型
+    uint64 ConnID = 4;
+}

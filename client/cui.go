@@ -56,10 +56,7 @@ func viewPrint(g *gocui.Gui, name, msg string, newLine bool) {
 func doReceive(g *gocui.Gui) {
 	receiveChan := chat.Receive()
 	for msg := range receiveChan {
-		switch msg.Type {
-		case sdk.MsgTypeText:
-			viewPrint(g, msg.Name, msg.Content, false)
-		}
+		viewPrint(g, msg.Name, msg.Content, false)
 	}
 }
 
@@ -71,7 +68,7 @@ func doSay(g *gocui.Gui, cv *gocui.View) {
 		if p != nil {
 			msg := &sdk.Message{
 				Type:       sdk.MsgTypeText,
-				Name:       "qgw",
+				Name:       "im",
 				FromUserID: "1234",
 				ToUserID:   "4321",
 				Content:    string(p),
@@ -244,7 +241,7 @@ func RunMain() {
 		panic(err)
 	}
 
-	chat = sdk.NewChat(net.ParseIP("0.0.0.0"), 8900, "test-im", "1230", "12301230")
+	chat = sdk.NewChat(net.ParseIP("0.0.0.0"), 8900, "im", "1234", "123456", 0, false)
 	chat.Receive()
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -276,6 +273,17 @@ func RunMain() {
 	if err := g.SetKeybinding("in", gocui.KeyArrowDown, gocui.ModNone, pasteDown); err != nil {
 		log.Panicln(err)
 	}
+
+	go func() {
+		time.Sleep(10 * time.Second)
+		// 模拟一次断线
+		chat.Close()
+		time.Sleep(2 * time.Second)
+		connID := chat.GetConnID()
+		// 重新连接
+		chat = sdk.NewChat(net.ParseIP("0.0.0.0"), 8900, "im", "1234", "123456", connID, true)
+		go doReceive(g)
+	}()
 
 	go doReceive(g)
 	if err := g.MainLoop(); err != nil {

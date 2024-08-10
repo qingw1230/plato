@@ -1,21 +1,23 @@
 package sdk
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/qingw1230/plato/common/idl/message"
 	"github.com/qingw1230/plato/common/tcp"
 )
 
-// connect 包含 IP 端口号，以及用于发送、接收消息的 chan *Message
+// connect 连接结构啼
 type connect struct {
-	conn        *net.TCPConn
+	conn        *net.TCPConn // TCP 连接
 	sendChan    chan *Message
 	receiveChan chan *Message
+	connID      uint64
 }
 
-func newConnect(ip net.IP, port int) *connect {
+func newConnect(ip net.IP, port int, connID uint64) *connect {
 	clientConn := &connect{
 		sendChan:    make(chan *Message),
 		receiveChan: make(chan *Message),
@@ -31,35 +33,44 @@ func newConnect(ip net.IP, port int) *connect {
 	}
 
 	clientConn.conn = conn
-
-	go func() {
-		for {
-			// 不断从 TCP 连接中读取数据，解码后写入 clientConn.receiveChan
-			data, err := tcp.ReadData(conn)
-			if err != nil {
-				fmt.Printf("ReadData err:%+v\n", err)
-			}
-			msg := &Message{}
-			err = json.Unmarshal(data, msg)
-			if err != nil {
-				panic(err)
-			}
-			clientConn.receiveChan <- msg
-		}
-	}()
-
+	if connID != 0 {
+		clientConn.connID = connID
+	}
 	return clientConn
 }
 
-// send 向 connect 中发送消息
-func (c *connect) send(data *Message) {
-	bytes, _ := json.Marshal(data)
-	dataPkg := tcp.DataPkg{
-		Len:  uint32(len(bytes)),
-		Data: bytes,
+// handAckMsg 处理 ACK 消息
+func handAckMsg(c *connect, data []byte) *Message {
+	ackMsg := &message.ACKMsg{}
+	proto.Unmarshal(data, ackMsg)
+	switch ackMsg.Type {
+	case message.CmdType_Login:
+		c.connID = ackMsg.ConnID
 	}
-	xx := dataPkg.Marshal()
-	c.conn.Write(xx)
+	return &Message{
+		Type:       MsgTypeAck,
+		Name:       "im",
+		FromUserID: "1234",
+		ToUserID:   "123456",
+		Content:    ackMsg.Msg,
+	}
+}
+
+// send 向 connect 中发送消息
+func (c *connect) send(ct message.CmdType, payload []byte) {
+	msgCmd := message.MsgCmd{
+		Type:    ct,
+		Payload: payload,
+	}
+	msg, err := proto.Marshal(&msgCmd)
+	if err != nil {
+		panic(err)
+	}
+	dataPkg := tcp.DataPkg{
+		Len:  uint32(len(msg)),
+		Data: msg,
+	}
+	c.conn.Write(dataPkg.Marshal())
 }
 
 // receive 从 connect 中获取消息

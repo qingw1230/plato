@@ -2,49 +2,44 @@ package state
 
 import (
 	"context"
-	"fmt"
+	"sync"
+	"time"
 
-	"github.com/qingw1230/plato/common/config"
-	"github.com/qingw1230/plato/common/prpc"
-
+	"github.com/qingw1230/plato/common/timingwheel"
 	"github.com/qingw1230/plato/state/rpc/client"
 	"github.com/qingw1230/plato/state/rpc/service"
-	"google.golang.org/grpc"
 )
 
 var cmdChannel chan *service.CmdContext
+var connToStateTable sync.Map
 
-// RunMain 启动网关服务
-func RunMain(path string) {
-	config.Init(path)
-	cmdChannel = make(chan *service.CmdContext, config.GetSateCmdChannelNum())
-
-	s := prpc.NewPServer(
-		prpc.WithServiceName(config.GetStateServiceName()),
-		prpc.WithIP(config.GetSateServiceAddr()),
-		prpc.WithPort(config.GetSateServerPort()),
-		prpc.WithWeight(config.GetSateRPCWeight()),
-	)
-
-	s.RegisterService(func(server *grpc.Server) {
-		service.RegisterStateServer(server, &service.Service{CmdChannel: cmdChannel})
-	})
-	// 初始化 RPC 客户端
-	client.Init()
-	// 启动命令处理写协程
-	go cmdHandler()
-	// 启动 rpc server
-	s.Start(context.TODO())
+type connState struct {
+	sync.RWMutex
+	heartTimer  *timingwheel.Timer
+	reConnTimer *timingwheel.Timer
+	connID      uint64
 }
 
-func cmdHandler() {
-	for cmd := range cmdChannel {
-		switch cmd.Cmd {
-		case service.CancelConnCmd:
-			fmt.Printf("cancelconn endpoint:%s, fd:%d, data:%+v", cmd.Endpoint, cmd.FD, cmd.Playload)
-		case service.SendMsgCmd:
-			fmt.Println("cmdHandler", string(cmd.Playload))
-			client.Push(cmd.Ctx, int32(cmd.FD), cmd.Playload)
-		}
+// reSetHeartTimer 重置定时器时间，触发时清除连接状态
+func (c *connState) reSetHeartTimer() {
+	c.Lock()
+	defer c.Unlock()
+	c.heartTimer.Stop()
+	c.heartTimer = AfterFunc(5*time.Second, func() {
+		clearState(c.connID)
+	})
+}
+
+// clearState 为了实现重连，不要立即释放连接的状态，有 10s 的延迟时间
+func clearState(connID uint64) {
+	if data, ok := connToStateTable.Load(connID); ok {
+		state, _ := data.(*connState)
+		state.Lock()
+		defer state.Unlock()
+		state.reConnTimer = AfterFunc(10*time.Second, func() {
+			ctx := context.TODO()
+			client.DelConn(&ctx, connID, nil)
+			connToStateTable.Delete(connID)
+		})
 	}
 }

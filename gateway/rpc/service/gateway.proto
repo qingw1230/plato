@@ -4,16 +4,17 @@ option go_package = "./;service";
 
 package service;
 
-// 网关机的 rpc server 定义
-// cd gateway/rpc 下 执行 
+// cd gateway/rpc
 // protoc -I service --go_out=plugins=grpc:service service/gateway.proto
+
+// 网关机的 rpc server 定义
 service Gateway {
   rpc DelConn (GatewayRequest) returns (GatewayResponse);
   rpc Push (GatewayRequest) returns (GatewayResponse);
 }
 
 message GatewayRequest{
-  int32 fd = 1;
+  uint64 connID = 1;
   bytes data = 2;
 }
 

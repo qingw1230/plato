@@ -4,6 +4,9 @@ option go_package = "./;service";
 
 package service;
 
+// cd state/rpc
+// protoc -I service --go_out=plugins=grpc:service service/state.proto
+
 service state {
     rpc CancelConn (StateRequest) returns (StateResponse);
     rpc SendMsg (StateRequest) returns (StateResponse);
@@ -11,7 +14,7 @@ service state {
   
 message StateRequest{
     string endpoint = 1;
-    int32 fd = 2;
+    uint64 connID = 2;
     bytes data = 3;
 }
   

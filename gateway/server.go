@@ -28,7 +28,6 @@ func RunMain(path string) {
 	}
 	initWorkPool()
 	initEpoll(ln, runProc)
-	fmt.Println("------------------- im gateway started ----------------")
 	cmdChannel = make(chan *service.CmdContext, config.GetGatewayCmdChannelNum())
 	s := prpc.NewPServer(
 		prpc.WithServiceName(config.GetGatewayServiceName()),
@@ -64,7 +63,7 @@ func runProc(c *connection, ep *epoller) {
 	}
 
 	err = wPool.Submit(func() {
-		client.SendMsg(&ctx, getEndpoint(), int32(c.fd), dataBuf)
+		client.SendMsg(&ctx, getEndpoint(), c.id, dataBuf)
 	})
 	if err != nil {
 		fmt.Errorf("runProc:err:%+v", err.Error())
@@ -86,15 +85,15 @@ func cmdHandler() {
 }
 
 func closeConn(cmd *service.CmdContext) {
-	if connPtr, ok := ep.tables.Load(cmd.FD); ok {
+	if connPtr, ok := ep.tables.Load(cmd.ConnID); ok {
 		conn, _ := connPtr.(*connection)
 		conn.Close()
-		ep.tables.Delete(cmd.FD)
+		ep.tables.Delete(cmd.ConnID)
 	}
 }
 
 func sendMsgByCmd(cmd *service.CmdContext) {
-	if connPtr, ok := ep.tables.Load(cmd.FD); ok {
+	if connPtr, ok := ep.tables.Load(cmd.ConnID); ok {
 		conn, _ := connPtr.(*connection)
 		dp := tcp.DataPkg{
 			Len:  uint32(len(cmd.Payload)),

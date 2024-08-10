@@ -25,7 +25,7 @@ var tcpNum int32
 // ePool 管理运行的 ep 模型
 type ePool struct {
 	eChan  chan *connection // 存储获取到的新连接
-	tables sync.Map         // 连接文件描述符与连接的映射
+	tables sync.Map         // connID 与连接的映射
 	eSize  int              // 创建的 ep 模型的数量
 	done   chan struct{}    // 用于终止网关
 
@@ -69,11 +69,8 @@ func (e *ePool) createAcceptProcess() {
 				}
 				setTCPConfig(conn)
 
-				c := connection{
-					conn: conn,
-					fd:   socketFD(conn),
-				}
-				ep.addTask(&c)
+				c := NewConnection(conn)
+				ep.addTask(c)
 			}
 		}()
 	}
@@ -140,7 +137,8 @@ func (e *ePool) addTask(c *connection) {
 
 // epoller 底层 ep 模型控制器
 type epoller struct {
-	fd int // ep 模型的文件描述符
+	fd            int // ep 模型的文件描述符
+	fdToConnTable sync.Map
 }
 
 // newEpoller 创建一个 ep 模型
@@ -165,7 +163,9 @@ func (e *epoller) add(conn *connection) error {
 	if err != nil {
 		return err
 	}
-	ep.tables.Store(fd, conn)
+	e.fdToConnTable.Store(conn.fd, conn)
+	ep.tables.Store(conn.id, conn)
+	conn.BindEpoller(e)
 	return nil
 }
 
@@ -177,7 +177,8 @@ func (e *epoller) remove(c *connection) error {
 	if err != nil {
 		return err
 	}
-	ep.tables.Delete(fd)
+	ep.tables.Delete(c.id)
+	e.fdToConnTable.Delete(c.fd)
 	return nil
 }
 
@@ -191,7 +192,7 @@ func (e *epoller) wait(msec int) ([]*connection, error) {
 
 	var connections []*connection
 	for i := 0; i < n; i++ {
-		if conn, ok := ep.tables.Load(int(events[i].Fd)); ok {
+		if conn, ok := e.fdToConnTable.Load(int(events[i].Fd)); ok {
 			connections = append(connections, conn.(*connection))
 		}
 	}
